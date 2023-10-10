@@ -14,11 +14,15 @@ class User extends Authenticatable implements JWTSubject
 
     /* The table associated with the model.
      * @var string */
-    protected $table = 'Space_Profile';
+    protected $table = 'Profile';
 
     /* The primary key associated with the table.
      * @var string */
     protected $primaryKey = 'Profile_ID';
+
+    /** created_at and updated_at columns but with different column names */
+    const CREATED_AT = 'Profile_CreatedAt';
+    const UPDATED_AT = 'Profile_UpdatedAt';
 
     /**
      * The attributes that are mass assignable.
@@ -26,9 +30,12 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
-        'Profile_Name',
+        'Profile_RealName',
+        'Profile_DisplayName',
         'Profile_Email',
         'Profile_Password',
+        'Profile_ImageUrl',
+        'Profile_Birthday'
     ];
 
     /**

@@ -21,16 +21,18 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-/*
-    Users only routes
-*/
+/**
+ * Users only routes
+ */
 Route::group(['middleware' => ['useronly']], function () {
 });
 Route::post('/createNewSpace', [SpaceController::class, 'createNewSpace']);
 
-/*
-    User Authentication
-*/
+/**
+ * User Authentication
+ */
+// User create
+Route::post('/userCreate', [AuthController::class, 'userCreate']);
 // User login
 Route::post('/userLogin', [AuthController::class, 'userLogin']);
 // User logout

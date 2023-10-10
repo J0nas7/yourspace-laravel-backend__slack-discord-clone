@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 use App\Helpers\DataService;
+use App\Models\User;
+use DateTime;
 
 class AuthController extends Controller
 {
@@ -16,10 +18,11 @@ class AuthController extends Controller
     // Instantiate a new controller instance
     public function __construct(Request $request)
     {
-        $this->request = json_decode($request->input('postContent'));
+        $this->request = json_decode($request->input('postContent')) ?? $request;
 
         $this->middleware('auth:api', ['except' => [
-            'userLogin', 
+            'userLogin',
+            'userCreate',
             'userLoggedInTest'
         ]]);
     }
@@ -66,6 +69,100 @@ class AuthController extends Controller
     }
 
     /**
+     * userCreate
+     * Create user by the Auth facade
+     *
+     * @param  string $request->Profile_RealName
+     * @param  string $request->Profile_DisplayName
+     * @param  string $request->Profile_Email
+     * @param  string $request->Profile_Password
+     * @return response json
+     */
+    public function userCreate()
+    {
+        $createFailed = false;
+        $errorMsg = "";
+
+        $Profile_RealName = $this->request->Profile_RealName;
+        $Profile_DisplayName = $this->request->Profile_DisplayName;
+        $Profile_Email = $this->request->Profile_Email;
+        $Profile_Password = $this->request->Profile_Password;
+        $Profile_Password2 = $this->request->Profile_Password2;
+        $Profile_BirthdayDD = $this->request->Profile_BirthdayDD;
+        $Profile_BirthdayMM = $this->request->Profile_BirthdayMM;
+        $Profile_BirthdayYYYY = $this->request->Profile_BirthdayYYYY;
+
+        $Profile_Birthday = new DateTime();
+        $Profile_Birthday->setDate($Profile_BirthdayYYYY, $Profile_BirthdayMM, $Profile_BirthdayDD);
+        $Profile_Birthday->setTime(0, 0, 0);
+
+        if (empty($Profile_RealName) || empty($Profile_DisplayName) || 
+            empty($Profile_Email) || empty($Profile_Password) || 
+            empty($Profile_Password2) || empty($Profile_BirthdayDD) || 
+            empty($Profile_BirthdayMM) || empty($Profile_BirthdayYYYY))
+        {
+            $createFailed = true;
+            $errorMsg = "Missing neccesary credentials.";
+        }
+
+        if (!$Profile_Birthday) {
+            $createFailed = true;
+            $errorMsg = "Wrong format in birthday.";
+        }
+
+        if ($Profile_Password !== $Profile_Password2) {
+            $createFailed = true;
+            $errorMsg = "Passwords does not match.";
+        }
+
+        if (!$createFailed && !filter_var($Profile_Email, FILTER_VALIDATE_EMAIL)) {
+            $createFailed = true;
+            $errorMsg = "Invalid email address.";
+        }
+
+        // Check that Profile_DisplayName and Profile_Email is not occupied
+        $displayNameOccupied = User::where("Profile_DisplayName", $Profile_DisplayName)->first();
+        $emailOccupied = User::where("Profile_Email", $Profile_Email)->first();
+        if ($displayNameOccupied || $emailOccupied) {
+            $createFailed = true;
+            $errorMsg = "Display-name or e-mail is already taken.";
+        }
+
+        if (!$createFailed) {
+            $profile = User::create([
+                'Profile_RealName' => $Profile_RealName,
+                'Profile_DisplayName' => $Profile_DisplayName,
+                'Profile_Email' => $Profile_Email,
+                'Profile_Password' => $Profile_Password,
+                'Profile_Birthday' => $Profile_Birthday->format('Y-m-d H:i:s'),
+                'Profile_ImageUrl' => '',
+            ]);
+        }
+
+        if (!$createFailed && $profile) {
+            $credentials['Profile_Email'] = $Profile_Email;
+            $credentials['password'] = $Profile_Password;
+            $token = Auth::attempt($credentials);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'The user was created and logged in',
+                'data'    => $profile,
+                'authorisation' => [
+                    'accessToken' => $token,
+                    'refreshToken' => Auth::refresh()
+                ]
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => (!empty($errorMsg) ? $errorMsg : 'Profile Creation Failed '),
+                'data'    => false
+            ], 200);
+        }
+    }
+
+    /**
      * userLogout
      * Log out user by the Auth facade
      *
@@ -85,8 +182,8 @@ class AuthController extends Controller
      * userLogin
      * Login user with email and password credentials
      *
-     * @param  string $request->email
-     * @param  string $request->password
+     * @param  string $request->Profile_Email
+     * @param  string $request->Profile_Password
      * @return response json
      */
     public function userLogin(Request $request)
@@ -113,6 +210,7 @@ class AuthController extends Controller
         }
 
         // Try login attempt with fulfilled email and password
+        $token = false;
         if (!$loginFailed) {
             $token = Auth::attempt($credentials);
         }
@@ -124,11 +222,11 @@ class AuthController extends Controller
                 'success' => true,
                 'user' => $user,
                 'authorisation' => [
-                    'token' => $token,
-                    'type' => 'bearer',
+                    'accessToken' => $token,
+                    'refreshToken' => Auth::refresh()
                 ]
             ], 200);
-        } else if (!$token && empty($errorMsg)) {
+        } else if (!$token && !$loginFailed) {
             $loginFailed = true;
             $errorMsg = "Login Attempt Failed";
         }
@@ -138,7 +236,7 @@ class AuthController extends Controller
                 'success' => false,
                 'message' => (!empty($errorMsg) ? $errorMsg : 'User Login Failed '),
                 'data'    => false
-            ], 401);
+            ], 200);
         }
     }
 }

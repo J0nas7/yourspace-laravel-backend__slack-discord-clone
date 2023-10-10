@@ -17,7 +17,7 @@ class SpaceController extends Controller
 
     // Instantiate a new controller instance
     public function __construct(Request $request) {
-        $this->request = $request;
+        $this->request = json_decode($request->input('postContent')) ?? $request;
         $this->searchTerm = json_decode($this->request->input('postContent'))->searchTerm ?? null;
         $this->pageNr = json_decode($this->request->input('postContent'))->pageNr ?? null;
     }
@@ -27,25 +27,23 @@ class SpaceController extends Controller
         $createFailed = false;
         $errorMsg = "";
 
-        $SpaceName = $this->request->Space_Name;
+        $Space_Name = $this->request->Space_Name;
 
         if (empty($this->request->Space_Name)) {
             $createFailed = true;
             $errorMsg = "Missing space name";
         }
         
-        // Check that Space Name is not occupied
-        $nameOccupied = Space::where("Space_Name", $SpaceName)->first();
+        // Check that Space_Name is not occupied
+        $nameOccupied = Space::where("Space_Name", $Space_Name)->first();
         if ($nameOccupied) {
             $createFailed = true;
             $errorMsg = "The space name is already taken.";
         }
 
         if (!$createFailed) {
-            $createdAt = new DateTime();
-            $createdAt = $createdAt->format('d/m-Y H:i:s'); 
             $space = Space::create([
-                'Space_Name' => $SpaceName,
+                'Space_Name' => $Space_Name,
                 'Space_ImageUrl' => $this->request->Space_ImageUrl ?? '',
                 'Space_InviteCode' => '',
                 'Space_ProfileID' => Auth::user()->Profile_ID ?? 1
@@ -56,7 +54,7 @@ class SpaceController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'The space was created',
-                'data'    => true
+                'data'    => $space
             ], 200);
         } else {
             return response()->json([
