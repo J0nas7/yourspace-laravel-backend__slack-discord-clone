@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SpaceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,8 +24,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 /*
     Users only routes
 */
-Route::group(['middleware' => ['UserOnly']], function () {
+Route::group(['middleware' => ['useronly']], function () {
 });
+Route::post('/createNewSpace', [SpaceController::class, 'createNewSpace']);
 
 /*
     User Authentication
