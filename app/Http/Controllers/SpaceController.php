@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Space;
+use App\Models\Channel;
 use App\Helpers\DataService;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,24 +17,66 @@ class SpaceController extends Controller
     private $pageNr;
 
     // Instantiate a new controller instance
-    public function __construct(Request $request) {
-        $this->request = json_decode($request->input('postContent')) ?? $request;
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
         $this->searchTerm = json_decode($this->request->input('postContent'))->searchTerm ?? null;
         $this->pageNr = json_decode($this->request->input('postContent'))->pageNr ?? null;
+        $this->request = json_decode($this->request->input('postContent'));
+    }
+
+    // Get format channels list
+    public function getChannelsList()
+    {
+        // Setting variables
+        $Space_Name = $this->request->Space_Name;
+        $Channel_Format = $this->request->Channel_Format;
+        $Channel_Format = strtoupper($Channel_Format);
+        $space = Space::where("Space_Name", $Space_Name)->first();
+        
+        // If space exists, grab the Space_ID
+        if ($space) {
+            $Space_ID = $space->Space_ID;
+    
+            // DB get channel list
+            $channelList = Channel::select('Channel_Name')
+                                    ->where("Channel_SpaceID", '=', $Space_ID)
+                                    ->where('Channel_Type', '=', $Channel_Format)
+                                    ->get();
+        }
+        
+        // Return the channellist
+        if ($space && $channelList) {
+            return response()->json([
+                'success' => true,
+                'message' => 'ChannelsList returned',
+                'data'    => $channelList
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'ChannelList request failed '),
+            'data'    => false
+        ], 200);
     }
 
     // Create a new space
-    public function createNewSpace() {
+    public function createNewSpace()
+    {
         $createFailed = false;
         $errorMsg = "";
 
         $Space_Name = $this->request->Space_Name;
+        $Space_ImageUrl = $this->request->Space_ImageUrl;
 
-        if (empty($this->request->Space_Name)) {
+        // Check that Space_Name is filled
+        if (empty($Space_Name)) {
             $createFailed = true;
             $errorMsg = "Missing space name";
         }
-        
+
         // Check that Space_Name is not occupied
         $nameOccupied = Space::where("Space_Name", $Space_Name)->first();
         if ($nameOccupied) {
@@ -41,6 +84,13 @@ class SpaceController extends Controller
             $errorMsg = "The space name is already taken.";
         }
 
+        // Check that Space_ImageUrl is a valid URL.
+        if (!$createFailed && $Space_ImageUrl && !filter_var($Space_ImageUrl, FILTER_VALIDATE_URL)) {
+            $createFailed = true;
+            $errorMsg = "Invalid space image url.";
+        }
+
+        // There was no errors, create space
         if (!$createFailed) {
             $space = Space::create([
                 'Space_Name' => $Space_Name,
@@ -49,7 +99,8 @@ class SpaceController extends Controller
                 'Space_ProfileID' => Auth::user()->Profile_ID ?? 1
             ]);
         }
-        
+
+        // Send successfull response
         if (!$createFailed && $space) {
             return response()->json([
                 'success' => true,
@@ -58,6 +109,7 @@ class SpaceController extends Controller
             ], 200);
         }
 
+        // Send failed response
         return response()->json([
             'success' => false,
             'message' => (!empty($errorMsg) ? $errorMsg : 'Space Creation Failed '),
