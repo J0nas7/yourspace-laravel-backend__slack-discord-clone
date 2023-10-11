@@ -18,15 +18,18 @@ class UserOnly
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
+        //if (Auth::check()) {
+        if (Auth::user()) {
             return $next($request);
         }
 
-        Auth::logout();
+        //Auth::logout();
         // 401 Unauthorized
-        return response()->json(
-            ['error' => 'UserOnly Unauthorized'], 
-            401
-        );
+        return response()->json([
+                'error' => 'UserOnly Unauthorized',
+                'check' => Auth::check(),
+                'user' => Auth::user(),
+                'request' => $request->user(),
+            ], 401);
     }
 }
