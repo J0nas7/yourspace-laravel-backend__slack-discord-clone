@@ -56,12 +56,12 @@ class SpaceController extends Controller
                 'message' => 'The space was created',
                 'data'    => $space
             ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => (!empty($errorMsg) ? $errorMsg : 'Space Creation Failed '),
-                'data'    => false
-            ], 200);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Space Creation Failed '),
+            'data'    => false
+        ], 200);
     }
 }

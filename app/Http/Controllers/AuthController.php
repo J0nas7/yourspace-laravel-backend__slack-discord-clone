@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 use App\Helpers\DataService;
+use App\Models\Member;
 use App\Models\User;
 use DateTime;
 
@@ -41,13 +42,13 @@ class AuthController extends Controller
                 'message' => 'Is logged in',
                 'data'    => Auth::user()
             ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Is NOT logged in',
-                'data'    => false
-            ], 200);
         }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Is NOT logged in',
+            'data'    => false
+        ], 200);
     }
 
     /**
@@ -144,22 +145,25 @@ class AuthController extends Controller
             $credentials['password'] = $Profile_Password;
             $token = Auth::attempt($credentials);
 
+            $memberOfSpaces = Member::where("Member_ProfileID", $profile->Profile_ID)->count();
+
             return response()->json([
                 'success' => true,
                 'message' => 'The user was created and logged in',
                 'data'    => $profile,
+                'memberOfSpaces' => $memberOfSpaces,
                 'authorisation' => [
                     'accessToken' => $token,
                     'refreshToken' => Auth::refresh()
                 ]
             ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => (!empty($errorMsg) ? $errorMsg : 'Profile Creation Failed '),
-                'data'    => false
-            ], 200);
         }
+        
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Profile Creation Failed '),
+            'data'    => false
+        ], 200);
     }
 
     /**
@@ -217,26 +221,25 @@ class AuthController extends Controller
 
         // If login succeeds, authenticate the user
         if ($token && !$loginFailed) {
-            $user = Auth::user();
+            $profile = Auth::user();
+            $memberOfSpaces = Member::where("Member_ProfileID", $profile->Profile_ID)->count();
             return response()->json([
                 'success' => true,
-                'user' => $user,
+                'user' => $profile,
+                'memberOfSpaces' => $memberOfSpaces,
                 'authorisation' => [
                     'accessToken' => $token,
                     'refreshToken' => Auth::refresh()
                 ]
             ], 200);
-        } else if (!$token && !$loginFailed) {
-            $loginFailed = true;
-            $errorMsg = "Login Attempt Failed";
         }
 
-        if ($loginFailed) {
-            return response()->json([
-                'success' => false,
-                'message' => (!empty($errorMsg) ? $errorMsg : 'User Login Failed '),
-                'data'    => false
-            ], 200);
-        }
+        $loginFailed = true;
+        $errorMsg = "Login Attempt Failed";
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'User Login Failed '),
+            'data'    => false
+        ], 200);
     }
 }
