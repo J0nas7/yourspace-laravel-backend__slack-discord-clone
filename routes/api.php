@@ -26,14 +26,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
  */
 //Route::group(['middleware' => ['useronly']], function () {
 Route::group(['middleware' => ['api', 'useronly']], function () {
+    /**
+     * Space Controller
+     */
+    // Create a new space
+    Route::post('/createNewSpace', [SpaceController::class, 'createNewSpace']);
+    // Return a list of channels of given format
+    Route::post('/getChannelsList', [SpaceController::class, 'getChannelsList']);
 });
-/**
- * Space Controller
- */
-// Create a new space
-Route::post('/createNewSpace', [SpaceController::class, 'createNewSpace']);
-// Return a list of channels of given format
-Route::post('/getChannelsList', [SpaceController::class, 'getChannelsList']);
 
 /**
  * User Authentication
