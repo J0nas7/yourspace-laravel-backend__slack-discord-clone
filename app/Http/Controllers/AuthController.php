@@ -11,6 +11,7 @@ use App\Helpers\DataService;
 use App\Models\Member;
 use App\Models\User;
 use DateTime;
+use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
 
 class AuthController extends Controller
 {
@@ -24,7 +25,8 @@ class AuthController extends Controller
         $this->middleware('auth:api', ['except' => [
             'userLogin',
             'userCreate',
-            'userLoggedInTest'
+            'userLoggedInTest',
+            'refreshJWT'
         ]]);
     }
 
@@ -59,12 +61,20 @@ class AuthController extends Controller
      */
     public function refreshJWT()
     {
+        try {
+            $newToken = Auth::refresh();
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'JWT refresh failed',
+                'message' => $e->getMessage()
+            ], 401);
+        }
+
         return response()->json([
             'success' => true,
-            'user' => Auth::user(),
             'authorisation' => [
-                'token' => Auth::refresh(),
-                'type' => 'bearer',
+                'newAccessToken' => $newToken
             ]
         ]);
     }

@@ -21,19 +21,6 @@ class UserOnly
      */
     public function handle(Request $request, Closure $next): Response
     {
-        /*if (Auth::check()) {
-        if (Auth::user()) {
-            return $next($request);
-        }
-
-        //Auth::logout();
-        // 401 Unauthorized
-        return response()->json([
-            'error' => 'UserOnly Unauthorized',
-            'check' => Auth::check(),
-            'user' => Auth::user(),
-            'request' => $request->user(),
-        ], 401);*/
         try {
             $user = JWTAuth::parseToken()->authenticate();
             if (!$user) {
@@ -51,5 +38,18 @@ class UserOnly
         }
         
         return $next($request);
+        /*if (Auth::check()) {
+        if (Auth::user()) {
+            return $next($request);
+        }
+
+        //Auth::logout();
+        // 401 Unauthorized
+        return response()->json([
+            'error' => 'UserOnly Unauthorized',
+            'check' => Auth::check(),
+            'user' => Auth::user(),
+            'request' => $request->user(),
+        ], 401);*/
     }
 }

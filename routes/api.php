@@ -44,5 +44,7 @@ Route::post('/userCreate', [AuthController::class, 'userCreate']);
 Route::post('/userLogin', [AuthController::class, 'userLogin']);
 // User logout
 Route::get('/userLogout', [AuthController::class, 'userLogout']);
+// Refresh JWT token
+Route::get('/refreshJWT', [AuthController::class, 'refreshJWT']);
 // Check for user login
 Route::get('/userLoggedInTest', [AuthController::class, 'userLoggedInTest']);
