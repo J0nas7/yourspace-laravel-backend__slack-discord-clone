@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SpaceController;
+use App\Http\Controllers\ChannelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,8 +32,18 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      */
     // Create a new space
     Route::post('/createNewSpace', [SpaceController::class, 'createNewSpace']);
+    // Return the specific space from the unique space name
+    Route::post('/getTheSpace', [SpaceController::class, 'getTheSpace']);
     // Return a list of channels of given format
     Route::post('/getChannelsList', [SpaceController::class, 'getChannelsList']);
+    // Return a list of spaces
+    Route::get('/getSpacesList', [SpaceController::class, 'getSpacesList']);
+    
+    /**
+     * Channel Controller
+     */
+    // Create new channel in a space
+    Route::post('/createNewChannel', [ChannelController::class, 'createNewChannel']);
 });
 
 /**

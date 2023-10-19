@@ -25,6 +25,56 @@ class SpaceController extends Controller
         $this->request = json_decode($this->request->input('postContent'));
     }
 
+    // Get spaces list
+    public function getSpacesList()
+    {
+        // Grab the spaces list
+        $spacesList = Space::select(array('Space_ID', 'Space_Name'))
+                                /*->where("Channel_SpaceID", '=', $Space_ID)
+                                ->where('Channel_Type', '=', $Channel_Format)*/
+                                ->get();
+        
+        // Return the spaces list
+        if ($spacesList) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Spaces list returned',
+                'data'    => $spacesList
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Spaces list request failed '),
+            'data'    => false
+        ], 200);
+    }
+
+    // Get specific space from the unique space name
+    public function getTheSpace()
+    {
+        // Setting variables
+        $Space_Name = $this->request->Space_Name;
+        $space = Space::select(array('Space_ID', 'Space_Name'))->where("Space_Name", $Space_Name)->first();
+        
+        // If space exists, return the space
+        if ($space) {
+            return response()->json([
+                'success' => true,
+                'message' => 'The space returned',
+                'data'    => $space
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Get space request failed '),
+            'data'    => false
+        ], 200);
+    }
+
     // Get format channels list
     public function getChannelsList()
     {
@@ -49,7 +99,7 @@ class SpaceController extends Controller
         if ($space && $channelList) {
             return response()->json([
                 'success' => true,
-                'message' => 'ChannelsList returned',
+                'message' => 'Channel list returned',
                 'data'    => $channelList
             ], 200);
         }
@@ -57,7 +107,7 @@ class SpaceController extends Controller
         // Send failed response
         return response()->json([
             'success' => false,
-            'message' => (!empty($errorMsg) ? $errorMsg : 'ChannelList request failed '),
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Channel list request failed '),
             'data'    => false
         ], 200);
     }
