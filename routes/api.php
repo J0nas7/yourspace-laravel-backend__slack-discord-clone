@@ -44,6 +44,8 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      */
     // Create new channel in a space
     Route::post('/createNewChannel', [ChannelController::class, 'createNewChannel']);
+    // Edit existing channel in a space
+    Route::post('/editChannel', [ChannelController::class, 'editChannel']);
 });
 
 /**
