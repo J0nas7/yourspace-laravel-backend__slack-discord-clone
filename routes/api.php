@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\ChannelController;
+use App\Http\Controllers\MessageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,14 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     Route::post('/createNewChannel', [ChannelController::class, 'createNewChannel']);
     // Edit existing channel in a space
     Route::post('/editChannel', [ChannelController::class, 'editChannel']);
+    
+    /**
+     * Message Controller
+     */
+    // Insert new message
+    Route::post('/insertNewMessage', [MessageController::class, 'insertNewMessage']);
+    // Get previous 10 messages
+    Route::post('/getMessages', [MessageController::class, 'getMessages']);
 });
 
 /**

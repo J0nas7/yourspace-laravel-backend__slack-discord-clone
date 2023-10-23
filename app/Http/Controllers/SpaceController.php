@@ -140,13 +140,18 @@ class SpaceController extends Controller
             $errorMsg = "Invalid space image url.";
         }
 
+        if (!Auth::user()->Profile_ID) {
+            $createFailed = true;
+            $errorMsg = "User info not found.";
+        }
+
         // There was no errors, create space
         if (!$createFailed) {
             $space = Space::create([
                 'Space_Name' => $Space_Name,
                 'Space_ImageUrl' => $this->request->Space_ImageUrl ?? '',
                 'Space_InviteCode' => '',
-                'Space_ProfileID' => Auth::user()->Profile_ID ?? 1
+                'Space_ProfileID' => Auth::user()->Profile_ID
             ]);
         }
 

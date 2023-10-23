@@ -22,7 +22,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('SPA_URL'), 'http://localhost'],
+    'allowed_origins' => ['http://localhost:3000', 'http://localhost:5000'],
 
     'allowed_origins_patterns' => [],
 
