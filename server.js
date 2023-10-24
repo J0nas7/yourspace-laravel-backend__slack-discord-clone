@@ -50,14 +50,7 @@ io.on('connection', (socket) => {
         console.log("Response", response)
 
         if (response.data) {
-            const clientData = {
-                messageID: 1,
-                userID: 1,
-                userName: response.data.Profile_DisplayName,
-                messageContent: data.post.message,
-                messageDate: new Date()
-            }
-            io.sockets.emit('sendChatToClient', clientData)
+            io.sockets.emit('sendChatToClient', response.data)
             //socket.broadcast.emit('sendChatToClient', message)
         }
     })

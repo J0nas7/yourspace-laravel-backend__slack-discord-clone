@@ -58,7 +58,7 @@ class MessageController extends Controller
             $theMessages = array();
             $getMessages = Message::where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
                 //->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
-                ->orderBy('Message_ID', 'ASC')->latest()->take(10)->get();
+                ->latest()->take(10)->get()->sortBy('Message_ID');
             foreach ($getMessages as $message) {
                 $profile = User::where("Profile_ID", $message->Message_MemberID)->first();
                 $message->Profile_DisplayName = $profile->Profile_DisplayName;
@@ -122,6 +122,11 @@ class MessageController extends Controller
                 'Message_MemberID' => Auth::user()->Profile_ID,
                 'Message_ChannelID' => $channel->Channel_ID,
             ]);
+            $profile = User::where("Profile_ID", $newMessage->Message_MemberID)->first();
+            $channel = Channel::select("Channel_Name")->where("Channel_ID", $newMessage->Message_ChannelID)->first();
+            $newMessage->Profile_DisplayName = $profile->Profile_DisplayName;
+            $newMessage->Profile_ImageUrl = $profile->Profile_ImageUrl;
+            $newMessage->Channel_Name = $channel->Channel_Name;
         }
 
         // Send successfull response

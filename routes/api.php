@@ -70,3 +70,5 @@ Route::get('/userLogout', [AuthController::class, 'userLogout']);
 Route::get('/refreshJWT', [AuthController::class, 'refreshJWT']);
 // Check for user login
 Route::get('/userLoggedInTest', [AuthController::class, 'userLoggedInTest']);
+// Return user data by the Auth facade
+Route::get('/userData', [AuthController::class, 'userData']);

@@ -23,10 +23,11 @@ class AuthController extends Controller
         $this->request = json_decode($request->input('postContent')) ?? $request;
 
         $this->middleware('auth:api', ['except' => [
+            'userData',
             'userLogin',
             'userCreate',
             'userLoggedInTest',
-            'refreshJWT'
+            'refreshJWT',
         ]]);
     }
 
@@ -77,6 +78,29 @@ class AuthController extends Controller
                 'newAccessToken' => $newToken
             ]
         ]);
+    }
+
+    /**
+     * userData
+     * Return user data by the Auth facade
+     *
+     * @return response json
+     */
+    public function userData()
+    {
+        if (Auth::check()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'User data returned',
+                'data'    => Auth::user()
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No user data available',
+            'data'    => false
+        ], 200);
     }
 
     /**
