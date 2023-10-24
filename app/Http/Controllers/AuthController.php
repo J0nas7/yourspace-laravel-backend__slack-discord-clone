@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
 use App\Helpers\DataService;
+use App\Models\Channel;
 use App\Models\Member;
+use App\Models\Space;
 use App\Models\User;
 use DateTime;
 use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
@@ -88,17 +90,32 @@ class AuthController extends Controller
      */
     public function userData()
     {
-        if (Auth::check()) {
+        $selectFailed = false;
+        $errorMsg = "";
+
+        // Setting variables
+        $Space_Name = $this->request->Space_Name ?? '';
+
+        // Check that Space_Name exists
+        $space = Space::where("Space_Name", $Space_Name)->first();
+        
+        // There was no errors, return user data message.
+        if (!$selectFailed && Auth::check()) {
+            $user = Auth::user();
+            if ($space) {
+                $userRole = Member::where("Member_SpaceID", $space->Space_ID)->where("Member_ProfileID", $user->Profile_ID)->first();
+                $user->Member_Role = $userRole->Member_Role;
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'User data returned',
-                'data'    => Auth::user()
+                'data'    => $user
             ], 200);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'No user data available',
+            'message' => (!empty($errorMsg) ? $errorMsg : 'User Data Request Failed '),
             'data'    => false
         ], 200);
     }
