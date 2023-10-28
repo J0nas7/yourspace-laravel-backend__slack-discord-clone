@@ -113,6 +113,58 @@ class SpaceController extends Controller
     }
 
     // Create a new space
+    public function editSpace()
+    {
+        $edit_failed = false;
+        $errorMsg = "";
+        $new_changes = array();
+
+        if (isset($this->request->Space_Name_old)) $Space_Name_old = $this->request->Space_Name_old;
+        if (isset($this->request->Space_Name_new)) $Space_Name_new = $this->request->Space_Name_new;
+        if (isset($this->request->Space_ImageUrl)) $Space_ImageUrl = $this->request->Space_ImageUrl;
+
+        // Check that Space_Name is filled
+        if (empty($Space_Name_old)) {
+            $edit_failed = true;
+            $errorMsg = "Missing space name";
+        }
+
+        // Check that new Space_Name is not occupied
+        $nameOccupied = Space::where("Space_Name", $Space_Name_new)->first();
+        if ($nameOccupied && $Space_Name_new) {
+            $edit_failed = true;
+            $errorMsg = "The new space name is already taken.";
+        }
+
+        // There was no errors, save the changes
+        if (!$edit_failed) {
+            if ($Space_Name_new) $new_changes['Space_Name'] = $Space_Name_new;
+
+            if (count($new_changes)) {
+                $current_space = Space::select("Space_ID")->where("Space_Name", $Space_Name_old)->first();
+                $space_changes = Space::where('Space_ID', $current_space->Space_ID)->update($new_changes);
+                $return_space = Space::where('Space_ID', $current_space->Space_ID)->first();
+            }
+        }
+
+        // Send successfull response
+        if (!$edit_failed && $space_changes) {
+            return response()->json([
+                'success' => true,
+                'message' => 'The changes was saved',
+                'data'    => $return_space
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Space Editing Failed '),
+            'data'    => false
+        ], 200);
+    }
+
+    // Create a new space
     public function createNewSpace()
     {
         $createFailed = false;
