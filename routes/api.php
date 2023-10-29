@@ -41,6 +41,8 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     Route::post('/getChannelsList', [SpaceController::class, 'getChannelsList']);
     // Return a list of spaces
     Route::get('/getSpacesList', [SpaceController::class, 'getSpacesList']);
+    // Get members of space list
+    Route::post('/getMembersOfSpaceList', [SpaceController::class, 'getMembersOfSpaceList']);
     
     /**
      * Channel Controller

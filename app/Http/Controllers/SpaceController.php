@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Space;
 use App\Models\Channel;
 use App\Helpers\DataService;
+use App\Models\Member;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 use DateTime;
@@ -28,14 +30,24 @@ class SpaceController extends Controller
     // Get spaces list
     public function getSpacesList()
     {
+        $errorMsg = "";
+
         // Grab the spaces list
-        $spacesList = Space::select(array('Space_ID', 'Space_Name'))
-                                /*->where("Channel_SpaceID", '=', $Space_ID)
-                                ->where('Channel_Type', '=', $Channel_Format)*/
-                                ->get();
-        
+        $user = Auth::user();
+        $memberOfSpacesList = Member::select("Member_SpaceID")->where("Member_ProfileID", $user->Profile_ID)->get();
+        $spacesList = array();
+        if ($memberOfSpacesList) {
+            foreach ($memberOfSpacesList as $memberSpace) {
+                $spacesList[] = Space::select(array('Space_ID', 'Space_Name'))
+                    ->where("Space_ID", $memberSpace->Member_SpaceID)
+                    ->first();
+            }
+        } else {
+            $errorMsg = "NotAnyMember";
+        }
+
         // Return the spaces list
-        if ($spacesList) {
+        if (!$errorMsg && $spacesList) {
             return response()->json([
                 'success' => true,
                 'message' => 'Spaces list returned',
@@ -51,13 +63,55 @@ class SpaceController extends Controller
         ], 200);
     }
 
+    // Get members of space list
+    public function getMembersOfSpaceList()
+    {
+        $errorMsg = "";
+
+        // Grab the members list
+        $Space_Name = $this->request->Space_Name;
+        $space = Space::select(array('Space_ID', 'Space_Name'))->where("Space_Name", $Space_Name)->first();
+        $membersOfSpaceList = Member::select("Member_ProfileID")->where("Member_SpaceID", $space->Space_ID)->get();
+        $membersList = array();
+
+        // Grab the members details
+        if ($membersOfSpaceList) {
+            foreach ($membersOfSpaceList AS $memberOfSpace) {
+                $profile = User::select(array('Profile_ID', 'Profile_DisplayName', 'Profile_ImageUrl'))->where('Profile_ID', $memberOfSpace->Member_ProfileID)->first();
+                $membersList[] = array(
+                    "Profile_ID" => $profile->Profile_ID,
+                    "Profile_DisplayName" => $profile->Profile_DisplayName,
+                    "Profile_ImageUrl" => $profile->Profile_ImageUrl,
+                );
+            }
+        } else {
+            $errorMsg = "NotAnyMembers";
+        }
+
+        // Return the members of space list
+        if (!$errorMsg && $membersList) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Members of space list returned',
+                'data'    => $membersList
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Members of space list request failed '),
+            'data'    => false
+        ], 200);
+    }
+
     // Get specific space from the unique space name
     public function getTheSpace()
     {
         // Setting variables
         $Space_Name = $this->request->Space_Name;
         $space = Space::select(array('Space_ID', 'Space_Name'))->where("Space_Name", $Space_Name)->first();
-        
+
         // If space exists, return the space
         if ($space) {
             return response()->json([
@@ -83,18 +137,18 @@ class SpaceController extends Controller
         $Channel_Format = $this->request->Channel_Format;
         $Channel_Format = strtoupper($Channel_Format);
         $space = Space::where("Space_Name", $Space_Name)->first();
-        
+
         // If space exists, grab the Space_ID
         if ($space) {
             $Space_ID = $space->Space_ID;
-    
+
             // DB get channel list
             $channelList = Channel::select('Channel_Name')
-                                    ->where("Channel_SpaceID", '=', $Space_ID)
-                                    ->where('Channel_Type', '=', $Channel_Format)
-                                    ->get();
+                ->where("Channel_SpaceID", '=', $Space_ID)
+                ->where('Channel_Type', '=', $Channel_Format)
+                ->get();
         }
-        
+
         // Return the channellist
         if ($space && $channelList) {
             return response()->json([
