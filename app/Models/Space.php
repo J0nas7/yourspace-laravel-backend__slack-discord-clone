@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Space extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /* The table associated with the model.
      * @var string */
@@ -21,6 +23,7 @@ class Space extends Model
     /** created_at and updated_at columns but with different column names */
     const CREATED_AT = 'Space_CreatedAt';
     const UPDATED_AT = 'Space_UpdatedAt';
+    const DELETED_AT = 'Space_DeletedAt';
 
     /**
      * The attributes that are mass assignable.
