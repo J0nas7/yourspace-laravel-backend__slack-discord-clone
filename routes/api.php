@@ -35,6 +35,8 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     Route::post('/createNewSpace', [SpaceController::class, 'createNewSpace']);
     // Edit space, save changes
     Route::post('/editSpace', [SpaceController::class, 'editSpace']);
+    // Delete space, and its channels and messages
+    Route::post('/deleteSpace', [SpaceController::class, 'deleteSpace']);
     // Return the specific space from the unique space name
     Route::post('/getTheSpace', [SpaceController::class, 'getTheSpace']);
     // Return a list of channels of given format

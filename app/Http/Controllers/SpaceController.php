@@ -166,6 +166,50 @@ class SpaceController extends Controller
         ], 200);
     }
 
+    // Delete a space
+    public function deleteSpace()
+    {
+        $deleteFailed = false;
+        $errorMsg = "";
+        $Space_Name = $this->request->Space_Name;
+
+        // Check that Space_Name is filled
+        if (empty($Space_Name)) {
+            $deleteFailed = true;
+            $errorMsg = "Missing space name";
+        }
+
+        // Check that the Space_Name exists
+        $nameExists = Space::where("Space_Name", $Space_Name)->first();
+        if (!$nameExists) {
+            $deleteFailed = true;
+            $errorMsg = "The space name does not exists.";
+        }
+
+        // There was no errors, delete the space
+        if (!$deleteFailed) {
+            $deleteChannels = Channel::where("Channel_SpaceID", $nameExists->Space_ID)->delete();
+            $deleteSpace = $nameExists->delete();
+        }
+
+        // Send succesful response
+        if (!$deleteFailed && $deleteChannels && $deleteSpace) {
+            return response()->json([
+                'success' => true,
+                'message' => 'The space was deleted',
+                'deleteChannels'    => $deleteChannels,
+                'deleteSpace'    => $deleteSpace,
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Space Deleting Failed '),
+            'data'    => false
+        ], 200);
+    }
+
     // Create a new space
     public function editSpace()
     {
