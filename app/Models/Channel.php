@@ -33,6 +33,7 @@ class Channel extends Model
     protected $fillable = [
         'Channel_Name',
         'Channel_Type',
+        'Channel_Access',
         'Channel_ProfileID',
         'Channel_SpaceID'
     ];

@@ -143,7 +143,7 @@ class SpaceController extends Controller
             $Space_ID = $space->Space_ID;
 
             // DB get channel list
-            $channelList = Channel::select('Channel_Name')
+            $channelList = Channel::select(array('Channel_ID', 'Channel_Name'))
                 ->where("Channel_SpaceID", '=', $Space_ID)
                 ->where('Channel_Type', '=', $Channel_Format)
                 ->get();
