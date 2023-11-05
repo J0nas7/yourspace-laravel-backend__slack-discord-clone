@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SpaceController;
+use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\MessageController;
 
@@ -29,6 +30,14 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //Route::group(['middleware' => ['useronly']], function () {
 Route::group(['middleware' => ['api', 'useronly']], function () {
     /**
+     * Member Controller
+     */
+    // Create a new membership of a space
+    Route::post('/becomeAMember', [MemberController::class, 'becomeAMember']);
+    // Remove a member from a space
+    Route::post('/removeMember', [MemberController::class, 'removeMember']);
+
+    /**
      * Space Controller
      */
     // Create a new space
@@ -41,8 +50,10 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     Route::post('/getTheSpace', [SpaceController::class, 'getTheSpace']);
     // Return a list of channels of given format
     Route::post('/getChannelsList', [SpaceController::class, 'getChannelsList']);
+    // Get highlighted spaces list
+    Route::get('/getHighlightedSpacesList', [SpaceController::class, 'getHighlightedSpacesList']);
     // Return a list of spaces
-    Route::get('/getSpacesList', [SpaceController::class, 'getSpacesList']);
+    Route::get('/getMemberOfSpacesList', [SpaceController::class, 'getMemberOfSpacesList']);
     // Get members of space list
     Route::post('/getMembersOfSpaceList', [SpaceController::class, 'getMembersOfSpaceList']);
     

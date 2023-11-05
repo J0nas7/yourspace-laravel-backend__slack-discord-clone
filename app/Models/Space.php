@@ -36,21 +36,7 @@ class Space extends Model
         'Space_InviteCode',
         'Space_ProfileID',
         'Space_CreatedAt',
-        'Space_UpdatedAt'
-    ];
-
-    // /* The model's default values for attributes.
-    //  * @var array */
-    // protected $attributes = [
-    //     'Space_ID' => 0,
-    //     'Space_Name' => 0,
-    //     'Space_ImageUrl' => 0,
-    //     'Space_InviteCode' => 0,
-    //     'Space_CreatedAt' => 0,
-    //     'Space_UpdatedAt' => 0
-    // ];
-
-    protected $appends = [
-        
+        'Space_UpdatedAt',
+        'Space_DeletedAt',
     ];
 }

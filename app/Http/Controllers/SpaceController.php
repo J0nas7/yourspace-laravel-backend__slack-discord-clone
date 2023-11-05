@@ -27,8 +27,33 @@ class SpaceController extends Controller
         $this->request = json_decode($this->request->input('postContent'));
     }
 
-    // Get spaces list
-    public function getSpacesList()
+    // Get highlighted spaces list
+    public function getHighlightedSpacesList()
+    {
+        $errorMsg = "";
+
+        // Grab the spaces list
+        $spacesList = Space::select(array('Space_ID', 'Space_Name'))->get();
+
+        // Return the spaces list
+        if (!$errorMsg && $spacesList) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Highlighted spaces list returned',
+                'data'    => $spacesList
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Highlighted spaces list request failed '),
+            'data'    => false
+        ], 200);
+    }
+
+    // Get member of spaces list
+    public function getMemberOfSpacesList()
     {
         $errorMsg = "";
 
@@ -50,7 +75,7 @@ class SpaceController extends Controller
         if (!$errorMsg && $spacesList) {
             return response()->json([
                 'success' => true,
-                'message' => 'Spaces list returned',
+                'message' => 'Member of spaces list returned',
                 'data'    => $spacesList
             ], 200);
         }
@@ -58,7 +83,7 @@ class SpaceController extends Controller
         // Send failed response
         return response()->json([
             'success' => false,
-            'message' => (!empty($errorMsg) ? $errorMsg : 'Spaces list request failed '),
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Member of spaces list request failed '),
             'data'    => false
         ], 200);
     }
@@ -76,12 +101,14 @@ class SpaceController extends Controller
 
         // Grab the members details
         if ($membersOfSpaceList) {
-            foreach ($membersOfSpaceList AS $memberOfSpace) {
+            foreach ($membersOfSpaceList as $memberOfSpace) {
                 $profile = User::select(array('Profile_ID', 'Profile_DisplayName', 'Profile_ImageUrl'))->where('Profile_ID', $memberOfSpace->Member_ProfileID)->first();
+                $role = Member::select("Member_Role")->where("Member_ProfileID", $profile->Profile_ID)->where("Member_SpaceID", $space->Space_ID)->first();
                 $membersList[] = array(
                     "Profile_ID" => $profile->Profile_ID,
                     "Profile_DisplayName" => $profile->Profile_DisplayName,
                     "Profile_ImageUrl" => $profile->Profile_ImageUrl,
+                    "Member_Role" => $role->Member_Role
                 );
             }
         } else {
@@ -114,10 +141,16 @@ class SpaceController extends Controller
 
         // If space exists, return the space
         if ($space) {
+            $profile = Auth::user();
+            $Member_ProfileID = $profile->Profile_ID;
+            $Member_SpaceID = $space->Space_ID;
+            $alreadyMember = Member::select("Member_SpaceID")->where("Member_ProfileID", $Member_ProfileID)->where("Member_SpaceID", $Member_SpaceID)->first();
+            
             return response()->json([
                 'success' => true,
                 'message' => 'The space returned',
-                'data'    => $space
+                'data'    => $space,
+                'alreadyMember' => ($alreadyMember ? true : false),
             ], 200);
         }
 
@@ -154,7 +187,7 @@ class SpaceController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Channel list returned',
-                'data'    => $channelList
+                'data'    => $channelList,
             ], 200);
         }
 
@@ -210,7 +243,7 @@ class SpaceController extends Controller
         ], 200);
     }
 
-    // Create a new space
+    // Edit an existing space
     public function editSpace()
     {
         $edit_failed = false;

@@ -20,7 +20,7 @@ class Channel extends Model
      * @var string */
     protected $primaryKey = 'Channel_ID';
 
-    /** created_at and updated_at columns but with different column names */
+    /** Eloquent columns but with different column names */
     const CREATED_AT = 'Channel_CreatedAt';
     const UPDATED_AT = 'Channel_UpdatedAt';
     const DELETED_AT = 'Channel_DeletedAt';

@@ -35,6 +35,7 @@ class Message extends Model
         'Message_FileUrl',
         'Message_MemberID',
         'Message_ChannelID',
-        'deleted'
+        
+        'Message_DeletedAt',
     ];
 }
