@@ -46,7 +46,7 @@ io.on('connection', (socket) => {
 
     socket.on('sendChatToServer', async (data) => {
         let tempConfig = data.config ? data.config : config
-        const response = await axiosPost("insertNewMessage", tempConfig, data.post)
+        const response = await axiosPost("createMessage", tempConfig, data.post)
         console.log("Response", response)
 
         if (response.data) {

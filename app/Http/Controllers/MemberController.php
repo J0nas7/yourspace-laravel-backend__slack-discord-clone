@@ -28,8 +28,51 @@ class MemberController extends Controller
         $this->request = json_decode($this->request->input('postContent'));
     }
 
+    // Create a new membership of a space
+    public function createMember()
+    {
+        $errorMsg = "";
+
+        $Space_Name = $this->request->Space_Name;
+        $space = Space::select("Space_ID")->where("Space_Name", $Space_Name)->first();
+        $profile = Auth::user();
+        $Member_Role = "GUEST";
+        $Member_ProfileID = $profile->Profile_ID;
+        $Member_SpaceID = $space->Space_ID;
+
+        $alreadyMember = Member::select("Member_SpaceID")->where("Member_ProfileID", $Member_ProfileID)->where("Member_SpaceID", $Member_SpaceID)->first();
+        if (!$errorMsg && $alreadyMember) {
+            $errorMsg = "You are already a member of this space.";
+        }
+
+        // There was no errors, create membership
+        if (!$errorMsg) {
+            $member = Member::create([
+                'Member_Role' => $Member_Role,
+                'Member_ProfileID' => $Member_ProfileID,
+                'Member_SpaceID' => $Member_SpaceID
+            ]);
+        }
+
+        // Send successfull response
+        if (!$errorMsg && $member) {
+            return response()->json([
+                'success' => true,
+                'message' => 'The membership was created',
+                'data'    => $member
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Become a member request failed '),
+            'data'    => false
+        ], 200);
+    }
+
     // Change a membership role
-    public function memberAction()
+    public function updateMember()
     {
         $errorMsg = "";
 
@@ -78,13 +121,13 @@ class MemberController extends Controller
         // Send failed response
         return response()->json([
             'success' => false,
-            'message' => (!empty($errorMsg) ? $errorMsg : 'Space Role Editing Failed '),
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Space Role Updating Failed '),
             'data'    => false
         ], 200);
     }
 
-    // Remove a member from a space
-    public function removeMember()
+    // Delete a membership from a space
+    public function deleteMember()
     {
         $errorMsg = "";
 
@@ -131,49 +174,6 @@ class MemberController extends Controller
         return response()->json([
             'success' => false,
             'message' => (!empty($errorMsg) ? $errorMsg : 'Deleting a member failed '),
-            'data'    => false
-        ], 200);
-    }
-
-    // Create a new membership of a space
-    public function becomeAMember()
-    {
-        $errorMsg = "";
-
-        $Space_Name = $this->request->Space_Name;
-        $space = Space::select("Space_ID")->where("Space_Name", $Space_Name)->first();
-        $profile = Auth::user();
-        $Member_Role = "GUEST";
-        $Member_ProfileID = $profile->Profile_ID;
-        $Member_SpaceID = $space->Space_ID;
-
-        $alreadyMember = Member::select("Member_SpaceID")->where("Member_ProfileID", $Member_ProfileID)->where("Member_SpaceID", $Member_SpaceID)->first();
-        if (!$errorMsg && $alreadyMember) {
-            $errorMsg = "You are already a member of this space.";
-        }
-
-        // There was no errors, create membership
-        if (!$errorMsg) {
-            $member = Member::create([
-                'Member_Role' => $Member_Role,
-                'Member_ProfileID' => $Member_ProfileID,
-                'Member_SpaceID' => $Member_SpaceID
-            ]);
-        }
-
-        // Send successfull response
-        if (!$errorMsg && $member) {
-            return response()->json([
-                'success' => true,
-                'message' => 'The membership was created',
-                'data'    => $member
-            ], 200);
-        }
-
-        // Send failed response
-        return response()->json([
-            'success' => false,
-            'message' => (!empty($errorMsg) ? $errorMsg : 'Become a member request failed '),
             'data'    => false
         ], 200);
     }

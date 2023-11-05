@@ -41,52 +41,52 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      * Space Controller
      */
     // Create a new space
-    Route::post('/createNewSpace', [SpaceController::class, 'createNewSpace']);
-    // Edit space, save changes
-    Route::post('/editSpace', [SpaceController::class, 'editSpace']);
-    // Delete space, and its channels and messages
+    Route::post('/createSpace', [SpaceController::class, 'createSpace']);
+    // Read space from the unique space name
+    Route::post('/readSpace', [SpaceController::class, 'readSpace']);
+    // Read highlighted spaces list
+    Route::get('/readHighlightedSpacesList', [SpaceController::class, 'readHighlightedSpacesList']);
+    // Read member of spaces list
+    Route::get('/readMemberOfSpacesList', [SpaceController::class, 'readMemberOfSpacesList']);
+    // Read members of space list
+    Route::post('/readMembersOfSpaceList', [SpaceController::class, 'readMembersOfSpaceList']);
+    // Update space, save changes
+    Route::post('/updateSpace', [SpaceController::class, 'updateSpace']);
+    // Delete a space, and its channels and messages
     Route::post('/deleteSpace', [SpaceController::class, 'deleteSpace']);
-    // Return the specific space from the unique space name
-    Route::post('/getTheSpace', [SpaceController::class, 'getTheSpace']);
-    // Return a list of channels of given format
-    Route::post('/getChannelsList', [SpaceController::class, 'getChannelsList']);
-    // Get highlighted spaces list
-    Route::get('/getHighlightedSpacesList', [SpaceController::class, 'getHighlightedSpacesList']);
-    // Return a list of spaces
-    Route::get('/getMemberOfSpacesList', [SpaceController::class, 'getMemberOfSpacesList']);
-    // Get members of space list
-    Route::post('/getMembersOfSpaceList', [SpaceController::class, 'getMembersOfSpaceList']);
     
     /**
      * Channel Controller
      */
     // Create new channel in a space
-    Route::post('/createNewChannel', [ChannelController::class, 'createNewChannel']);
-    // Edit existing channel in a space
-    Route::post('/editChannel', [ChannelController::class, 'editChannel']);
+    Route::post('/createChannel', [ChannelController::class, 'createChannel']);
+    // Read "FORMAT" channels list
+    Route::post('/readChannelsList', [ChannelController::class, 'readChannelsList']);
+    // Update existing channel in a space
+    Route::post('/updateChannel', [ChannelController::class, 'updateChannel']);
     
     /**
      * Message Controller
      */
     // Insert new message
-    Route::post('/insertNewMessage', [MessageController::class, 'insertNewMessage']);
+    Route::post('/createMessage', [MessageController::class, 'createMessage']);
     // Get previous 10 messages
-    Route::post('/getMessages', [MessageController::class, 'getMessages']);
+    Route::post('/read10Messages', [MessageController::class, 'read10Messages']);
 });
 
 /**
- * User Authentication
+ * Auth Controller
  */
 // User create
-Route::post('/userCreate', [AuthController::class, 'userCreate']);
+Route::post('/createUser', [AuthController::class, 'createUser']);
+// Return user data by the Auth facade
+Route::post('/readUser', [AuthController::class, 'readUser']);
+Route::get('/readUser', [AuthController::class, 'readUser']);
 // User login
 Route::post('/userLogin', [AuthController::class, 'userLogin']);
 // User logout
 Route::get('/userLogout', [AuthController::class, 'userLogout']);
-// Refresh JWT token
-Route::get('/refreshJWT', [AuthController::class, 'refreshJWT']);
 // Check for user login
 Route::get('/userLoggedInTest', [AuthController::class, 'userLoggedInTest']);
-// Return user data by the Auth facade
-Route::post('/userData', [AuthController::class, 'userData']);
-Route::get('/userData', [AuthController::class, 'userData']);
+// Refresh JWT token
+Route::get('/refreshJWT', [AuthController::class, 'refreshJWT']);

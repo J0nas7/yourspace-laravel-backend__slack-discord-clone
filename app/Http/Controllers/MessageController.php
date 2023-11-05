@@ -28,64 +28,8 @@ class MessageController extends Controller
         $this->request = json_decode($this->request->input('postContent'));
     }
 
-    // Get previous 10 messages
-    public function getMessages()
-    {
-        $selectFailed = false;
-        $errorMsg = "";
-
-        // Setting variables
-        $Space_Name = $this->request->Space_Name;
-        $Channel_Name = $this->request->Channel_Name;
-
-        // Check that Space_Name and corresponding Channel_Name exists
-        $space = Space::where("Space_Name", $Space_Name)->first();
-        $channel = Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first();
-        if (!$space || !$channel) {
-            $selectFailed = true;
-            $errorMsg = "Could not find the channel or space.";
-        }
-
-        // There was no errors, create message.
-        if (!$selectFailed) {
-            $Channel_ID = $channel->Channel_ID;
-            
-            // DB get previous 10 messages
-            /*$messages = Message:://select(array('Message_ID', 'Message_Content', 'Message_CreatedAt', 'Message_FileUrl', 'Profile_DisplayName', 'Profile_ImageUrl'))
-                where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
-                ->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
-                ->orderBy('Message_ID', 'ASC')->latest()->take(10)->get();*/
-            $theMessages = array();
-            $getMessages = Message::where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
-                //->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
-                ->latest()->take(10)->get()->sortBy('Message_ID');
-            foreach ($getMessages as $message) {
-                $profile = User::where("Profile_ID", $message->Message_MemberID)->first();
-                $message->Profile_DisplayName = $profile->Profile_DisplayName;
-                $message->Profile_ImageUrl = $profile->Profile_ImageUrl;
-                $theMessages[] = $message;
-            }
-        }
-
-        // Return the messages
-        if (!$selectFailed && $theMessages) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Messages returned',
-                'data'    => $theMessages
-            ], 200);
-        }
-
-        // Send failed response
-        return response()->json([
-            'success' => false,
-            'message' => (!empty($errorMsg) ? $errorMsg : 'Messages request failed '),
-            'data'    => false
-        ], 200);
-    }
-
     // Insert new message
-    public function insertNewMessage()
+    public function createMessage()
     {
         $Message_Content = $this->request->Message_Content;
         $Channel_Name = $this->request->Channel_Name;
@@ -142,6 +86,62 @@ class MessageController extends Controller
         return response()->json([
             'success' => false,
             'message' => (!empty($errorMsg) ? $errorMsg : 'Message Creation Failed '),
+            'data'    => false
+        ], 200);
+    }
+
+    // Get previous 10 messages
+    public function read10Messages()
+    {
+        $selectFailed = false;
+        $errorMsg = "";
+
+        // Setting variables
+        $Space_Name = $this->request->Space_Name;
+        $Channel_Name = $this->request->Channel_Name;
+
+        // Check that Space_Name and corresponding Channel_Name exists
+        $space = Space::where("Space_Name", $Space_Name)->first();
+        $channel = Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first();
+        if (!$space || !$channel) {
+            $selectFailed = true;
+            $errorMsg = "Could not find the channel or space.";
+        }
+
+        // There was no errors, create message.
+        if (!$selectFailed) {
+            $Channel_ID = $channel->Channel_ID;
+            
+            // DB get previous 10 messages
+            /*$messages = Message:://select(array('Message_ID', 'Message_Content', 'Message_CreatedAt', 'Message_FileUrl', 'Profile_DisplayName', 'Profile_ImageUrl'))
+                where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
+                ->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
+                ->orderBy('Message_ID', 'ASC')->latest()->take(10)->get();*/
+            $theMessages = array();
+            $readMessages = Message::where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
+                //->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
+                ->latest()->take(10)->get()->sortBy('Message_ID');
+            foreach ($readMessages as $message) {
+                $profile = User::where("Profile_ID", $message->Message_MemberID)->first();
+                $message->Profile_DisplayName = $profile->Profile_DisplayName;
+                $message->Profile_ImageUrl = $profile->Profile_ImageUrl;
+                $theMessages[] = $message;
+            }
+        }
+
+        // Return the messages
+        if (!$selectFailed && $theMessages) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Messages returned',
+                'data'    => $theMessages
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Messages request failed '),
             'data'    => false
         ], 200);
     }
