@@ -70,8 +70,17 @@ class SpaceController extends Controller
             ]);
         }
 
-        // Send successfull response
+        // There was no errors, create ownership
         if (!$createFailed && $space) {
+            $owner = Member::create([
+                'Member_Role' => "OWNER",
+                'Member_ProfileID' => Auth::user()->Profile_ID,
+                'Member_SpaceID' => $space->Space_ID
+            ]);
+        }
+
+        // Send successfull response
+        if (!$createFailed && $space && $owner) {
             return response()->json([
                 'success' => true,
                 'message' => 'The space was created',
@@ -158,7 +167,7 @@ class SpaceController extends Controller
                     ->first();
             }
         } else {
-            $errorMsg = "NotAnyMember";
+            $errorMsg = "NotMemberOfSpace";
         }
 
         // Return the spaces list
@@ -186,7 +195,7 @@ class SpaceController extends Controller
         // Grab the members list
         $Space_Name = $this->request->Space_Name;
         $space = Space::select(array('Space_ID', 'Space_Name'))->where("Space_Name", $Space_Name)->first();
-        $membersOfSpaceList = Member::select("Member_ProfileID")->where("Member_SpaceID", $space->Space_ID)->get();
+        $membersOfSpaceList = ($space ? Member::select("Member_ProfileID")->where("Member_SpaceID", $space->Space_ID)->get() : false);
         $membersList = array();
 
         // Grab the members details
@@ -202,7 +211,7 @@ class SpaceController extends Controller
                 );
             }
         } else {
-            $errorMsg = "NotAnyMembers";
+            $errorMsg = "NoMembersOfSpace";
         }
 
         // Return the members of space list
@@ -288,16 +297,16 @@ class SpaceController extends Controller
         }
 
         // Check that the Space_Name exists
-        $nameExists = Space::where("Space_Name", $Space_Name)->first();
-        if (!$nameExists) {
+        $space = Space::where("Space_Name", $Space_Name)->first();
+        if (!$space) {
             $deleteFailed = true;
             $errorMsg = "The space name does not exists.";
         }
 
-        // There was no errors, delete the space
+        // There was no errors, delete the space and its channels
         if (!$deleteFailed) {
-            $deleteChannels = Channel::where("Channel_SpaceID", $nameExists->Space_ID)->delete();
-            $deleteSpace = $nameExists->delete();
+            $deleteChannels = Channel::where("Channel_SpaceID", $space->Space_ID)->delete();
+            $deleteSpace = $space->delete();
         }
 
         // Send succesful response

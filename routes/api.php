@@ -33,7 +33,7 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      * Member Controller
      */
     // Create a new membership of a space
-    Route::post('/becomeAMember', [MemberController::class, 'becomeAMember']);
+    Route::post('/createMember', [MemberController::class, 'createMember']);
     // Remove a member from a space
     Route::post('/removeMember', [MemberController::class, 'removeMember']);
 
@@ -64,6 +64,8 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     Route::post('/readChannelsList', [ChannelController::class, 'readChannelsList']);
     // Update existing channel in a space
     Route::post('/updateChannel', [ChannelController::class, 'updateChannel']);
+    // Delete existing channel in a space
+    Route::post('/deleteChannel', [ChannelController::class, 'deleteChannel']);
     
     /**
      * Message Controller
@@ -72,6 +74,10 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     Route::post('/createMessage', [MessageController::class, 'createMessage']);
     // Get previous 10 messages
     Route::post('/read10Messages', [MessageController::class, 'read10Messages']);
+    // Update existing message
+    Route::post('/updateExistingMessage', [MessageController::class, 'updateExistingMessage']);
+    // Delete message
+    Route::post('/deleteMessage', [MessageController::class, 'deleteMessage']);
 });
 
 /**

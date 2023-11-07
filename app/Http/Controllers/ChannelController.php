@@ -32,6 +32,7 @@ class ChannelController extends Controller
         $createFailed = false;
         $errorMsg = "";
 
+        $Space_Name = $this->request->Space_Name;
         $Channel_Name = $this->request->Channel_Name;
         $Channel_Format = strtoupper($this->request->Channel_Format);
 
@@ -54,13 +55,25 @@ class ChannelController extends Controller
             $errorMsg = "Invalid channel format.";
         }
 
+        if (!Auth::user()->Profile_ID) {
+            $createFailed = true;
+            $errorMsg = "User info not found.";
+        }
+
+        $space = Space::where("Space_Name", $Space_Name)->first();
+        // Space not found
+        if (!$space) {
+            $createFailed = true;
+            $errorMsg = "The space could not be found.";
+        }
+
         // There was no errors, create channel.
         if (!$createFailed) {
             $channel = Channel::create([
                 'Channel_Name' => $Channel_Name,
                 'Channel_Type' => $Channel_Format,
-                'Channel_ProfileID' => '1',
-                'Channel_SpaceID' => '4'
+                'Channel_ProfileID' => Auth::user()->Profile_ID,
+                'Channel_SpaceID' => $space->Space_ID
             ]);
         }
 
@@ -166,6 +179,52 @@ class ChannelController extends Controller
         return response()->json([
             'success' => false,
             'message' => (!empty($errorMsg) ? $errorMsg : 'Channel Update Failed '),
+            'data'    => false
+        ], 200);
+    }
+
+    // Delete existing channel in a space
+    public function deleteChannel()
+    {
+        $deleteFailed = false;
+        $errorMsg = "";
+
+        // Setting variables
+        $Space_Name = $this->request->Space_Name;
+        $Channel_Name = $this->request->Channel_Name;
+
+        // If credentials are empty
+        if (empty($Channel_Name)) {
+            $deleteFailed = true;
+            $errorMsg = "Missing channel info.";
+        }
+
+         // Check that the space and channel exists
+         $space = Space::select("Space_ID")->where("Space_Name", $Space_Name)->first();
+         $nameExists = Channel::where("Channel_Name", $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first();
+         if (!$space && !$nameExists) {
+             $deleteFailed = true;
+             $errorMsg = "The channel or space does not exists.";
+         }
+
+        // There was no errors, delete the channel
+        if (!$deleteFailed) {
+            $deleteChannel = $nameExists->delete();
+        }
+
+        // Send succesful response
+        if (!$deleteFailed && $deleteChannel) {
+            return response()->json([
+                'success' => true,
+                'message' => 'The channel was deleted',
+                'data'    => $deleteChannel,
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Channel Delete Failed '),
             'data'    => false
         ], 200);
     }

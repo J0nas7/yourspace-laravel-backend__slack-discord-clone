@@ -37,8 +37,8 @@ class MemberController extends Controller
         $space = Space::select("Space_ID")->where("Space_Name", $Space_Name)->first();
         $profile = Auth::user();
         $Member_Role = "GUEST";
-        $Member_ProfileID = $profile->Profile_ID;
-        $Member_SpaceID = $space->Space_ID;
+        $Member_ProfileID = $profile ? $profile->Profile_ID : 0;
+        $Member_SpaceID = $space ? $space->Space_ID : 0;
 
         $alreadyMember = Member::select("Member_SpaceID")->where("Member_ProfileID", $Member_ProfileID)->where("Member_SpaceID", $Member_SpaceID)->first();
         if (!$errorMsg && $alreadyMember) {

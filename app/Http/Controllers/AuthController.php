@@ -209,11 +209,13 @@ class AuthController extends Controller
             $memberOfSpaces = Member::where("Member_ProfileID", $profile->Profile_ID)->count();
             return response()->json([
                 'success' => true,
-                'user' => $profile,
-                'memberOfSpaces' => $memberOfSpaces,
-                'authorisation' => [
-                    'accessToken' => $token,
-                    'refreshToken' => Auth::refresh()
+                'data' => [
+                    'user' => $profile,
+                    'memberOfSpaces' => $memberOfSpaces,
+                    'authorisation' => [
+                        'accessToken' => $token,
+                        'refreshToken' => Auth::refresh()
+                    ]
                 ]
             ], 200);
         }

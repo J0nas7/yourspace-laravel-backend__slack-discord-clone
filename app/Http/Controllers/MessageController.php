@@ -102,7 +102,7 @@ class MessageController extends Controller
 
         // Check that Space_Name and corresponding Channel_Name exists
         $space = Space::where("Space_Name", $Space_Name)->first();
-        $channel = Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first();
+        $channel = ($space ? Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first() : false);
         if (!$space || !$channel) {
             $selectFailed = true;
             $errorMsg = "Could not find the channel or space.";
@@ -111,7 +111,7 @@ class MessageController extends Controller
         // There was no errors, create message.
         if (!$selectFailed) {
             $Channel_ID = $channel->Channel_ID;
-            
+
             // DB get previous 10 messages
             /*$messages = Message:://select(array('Message_ID', 'Message_Content', 'Message_CreatedAt', 'Message_FileUrl', 'Profile_DisplayName', 'Profile_ImageUrl'))
                 where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
@@ -142,6 +142,80 @@ class MessageController extends Controller
         return response()->json([
             'success' => false,
             'message' => (!empty($errorMsg) ? $errorMsg : 'Messages request failed '),
+            'data'    => false
+        ], 200);
+    }
+
+    // Update existing message
+    public function updateExistingMessage()
+    {
+        $deleteFailed = false;
+        $errorMsg = "";
+
+        // Setting variables
+        $Message_ID = $this->request->Message_ID;
+        $New_Content = $this->request->New_Content;
+
+        // If the message ID or new message  is empty
+        if (!$Message_ID) { $errorMsg = "The original message is invalid."; }
+        if (empty($New_Content)) { $errorMsg = "The message cannot be empty."; }
+
+        // There was no errors, save the changes
+        if (!$errorMsg) {
+            $new_changes = array();
+            $new_changes['Message_Content'] = $New_Content;
+
+            if (count($new_changes)) {
+                $message_changes = Message::where('Message_ID', $Message_ID)->update($new_changes);
+                $return_message = Message::where('Message_ID', $Message_ID)->first();
+            }
+        }
+
+        // Send successfull response
+        if (!$errorMsg && $message_changes) {
+            return response()->json([
+                'success' => true,
+                'message' => 'The changes was saved',
+                'data'    => $return_message
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Message Updating Failed '),
+            'data'    => false
+        ], 200);
+    }
+
+    // Delete message
+    public function deleteMessage()
+    {
+        $deleteFailed = false;
+        $errorMsg = "";
+
+        // Setting variables
+        $Message_ID = $this->request->Message_ID;
+
+        // There was no errors, delete the message
+        if (!$errorMsg) {
+            $message = Message::where("Message_ID", $Message_ID)->first();
+            $message->delete();
+        }
+
+        // Send successfull response
+        if (!$errorMsg && $message) {
+            return response()->json([
+                'success' => true,
+                'message' => 'The message was deleted',
+                'data'    => $message
+            ], 200);
+        }
+
+        // Send failed response
+        return response()->json([
+            'success' => false,
+            'message' => (!empty($errorMsg) ? $errorMsg : 'Deleting a message failed '),
             'data'    => false
         ], 200);
     }
