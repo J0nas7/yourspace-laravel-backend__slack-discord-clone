@@ -46,18 +46,11 @@ io.on('connection', (socket) => {
 
     socket.on('sendChatToServer', async (data) => {
         let tempConfig = data.config ? data.config : config
-        const response = await axiosPost("insertNewMessage", tempConfig, data.post)
+        const response = await axiosPost("createMessage", tempConfig, data.post)
         console.log("Response", response)
 
         if (response.data) {
-            const clientData = {
-                messageID: 1,
-                userID: 1,
-                userName: response.data.Profile_DisplayName,
-                messageContent: data.post.message,
-                messageDate: new Date()
-            }
-            io.sockets.emit('sendChatToClient', clientData)
+            io.sockets.emit('sendChatToClient', response.data)
             //socket.broadcast.emit('sendChatToClient', message)
         }
     })

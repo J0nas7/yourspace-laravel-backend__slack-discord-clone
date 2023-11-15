@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Channel extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /* The table associated with the model.
      * @var string */
@@ -18,9 +20,10 @@ class Channel extends Model
      * @var string */
     protected $primaryKey = 'Channel_ID';
 
-    /** created_at and updated_at columns but with different column names */
+    /** Eloquent columns but with different column names */
     const CREATED_AT = 'Channel_CreatedAt';
     const UPDATED_AT = 'Channel_UpdatedAt';
+    const DELETED_AT = 'Channel_DeletedAt';
 
     /**
      * The attributes that are mass assignable.
@@ -30,6 +33,7 @@ class Channel extends Model
     protected $fillable = [
         'Channel_Name',
         'Channel_Type',
+        'Channel_Access',
         'Channel_ProfileID',
         'Channel_SpaceID'
     ];

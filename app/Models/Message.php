@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Message extends Model
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /* The table associated with the model.
      * @var string */
@@ -21,6 +23,7 @@ class Message extends Model
     /** created_at and updated_at columns but with different column names */
     const CREATED_AT = 'Message_CreatedAt';
     const UPDATED_AT = 'Message_UpdatedAt';
+    const DELETED_AT = 'Message_DeletedAt';
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +35,7 @@ class Message extends Model
         'Message_FileUrl',
         'Message_MemberID',
         'Message_ChannelID',
-        'deleted'
+        
+        'Message_DeletedAt',
     ];
 }
