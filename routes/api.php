@@ -20,10 +20,6 @@ use App\Http\Controllers\MessageController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 /**
  * Users only routes
  */
@@ -34,8 +30,10 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      */
     // Create a new membership of a space
     Route::post('/createMember', [MemberController::class, 'createMember']);
-    // Remove a member from a space
-    Route::post('/removeMember', [MemberController::class, 'removeMember']);
+    // Delete a member from a space
+    Route::post('/deleteMember', [MemberController::class, 'deleteMember']);
+    // Change a membership role
+    Route::post('/updateMembershipRole', [MemberController::class, 'updateMembershipRole']);
 
     /**
      * Space Controller
