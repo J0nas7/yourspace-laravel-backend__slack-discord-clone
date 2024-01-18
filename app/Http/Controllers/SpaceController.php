@@ -156,15 +156,28 @@ class SpaceController extends Controller
     {
         $errorMsg = "";
 
+        // Setting variables
+        $Profile_ID = $this->request->Profile_ID ?? '';
+
+        // Grab the specific user or self
+        if ($Profile_ID) {
+            $user = User::where('Profile_ID', $Profile_ID)->first();
+        } else {
+            $user = Auth::user();
+        }
+
         // Grab the spaces list
-        $user = Auth::user();
         $memberOfSpacesList = Member::select("Member_SpaceID")->where("Member_ProfileID", $user->Profile_ID)->get();
         $spacesList = array();
         if ($memberOfSpacesList) {
-            foreach ($memberOfSpacesList as $memberSpace) {
-                $spacesList[] = Space::select(array('Space_ID', 'Space_Name'))
-                    ->where("Space_ID", $memberSpace->Member_SpaceID)
+            foreach ($memberOfSpacesList as $memberOfSpace) {
+                $space = Space::select(array('Space_ID', 'Space_Name'))
+                    ->where("Space_ID", $memberOfSpace->Member_SpaceID)
                     ->first();
+
+                if ($space) {
+                    $spacesList[] = $space;
+                }
             }
         } else {
             $errorMsg = "NotMemberOfSpace";

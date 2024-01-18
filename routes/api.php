@@ -45,7 +45,7 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     // Read highlighted spaces list
     Route::get('/readHighlightedSpacesList', [SpaceController::class, 'readHighlightedSpacesList']);
     // Read member of spaces list
-    Route::get('/readMemberOfSpacesList', [SpaceController::class, 'readMemberOfSpacesList']);
+    Route::post('/readMemberOfSpacesList', [SpaceController::class, 'readMemberOfSpacesList']);
     // Read members of space list
     Route::post('/readMembersOfSpaceList', [SpaceController::class, 'readMembersOfSpaceList']);
     // Update space, save changes
