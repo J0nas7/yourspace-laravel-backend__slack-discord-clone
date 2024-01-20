@@ -90,8 +90,8 @@ class MessageController extends Controller
         ], 200);
     }
 
-    // Get previous 10 messages
-    public function read10Messages()
+    // Get previous 25 messages
+    public function read25Messages()
     {
         $selectFailed = false;
         $errorMsg = "";
@@ -112,7 +112,7 @@ class MessageController extends Controller
         if (!$selectFailed) {
             $Channel_ID = $channel->Channel_ID;
 
-            // DB get previous 10 messages
+            // DB get last 25 messages
             /*$messages = Message:://select(array('Message_ID', 'Message_Content', 'Message_CreatedAt', 'Message_FileUrl', 'Profile_DisplayName', 'Profile_ImageUrl'))
                 where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
                 ->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
@@ -120,7 +120,7 @@ class MessageController extends Controller
             $theMessages = array();
             $readMessages = Message::where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
                 //->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
-                ->latest()->take(10)->get()->sortBy('Message_ID');
+                ->latest()->take(25)->get()->sortBy('Message_ID');
             foreach ($readMessages as $message) {
                 $profile = User::where("Profile_ID", $message->Message_MemberID)->first();
                 $message->Profile_DisplayName = $profile->Profile_DisplayName;

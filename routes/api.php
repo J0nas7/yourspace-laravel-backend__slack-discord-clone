@@ -70,8 +70,8 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      */
     // Insert new message
     Route::post('/createMessage', [MessageController::class, 'createMessage']);
-    // Get previous 10 messages
-    Route::post('/read10Messages', [MessageController::class, 'read10Messages']);
+    // Get previous 25 messages
+    Route::post('/read25Messages', [MessageController::class, 'read25Messages']);
     // Update existing message
     Route::post('/updateExistingMessage', [MessageController::class, 'updateExistingMessage']);
     // Delete message

@@ -214,13 +214,18 @@ class SpaceController extends Controller
         // Grab the members details
         if ($membersOfSpaceList) {
             foreach ($membersOfSpaceList as $memberOfSpace) {
-                $profile = User::select(array('Profile_ID', 'Profile_DisplayName', 'Profile_ImageUrl'))->where('Profile_ID', $memberOfSpace->Member_ProfileID)->first();
-                $role = Member::select("Member_Role")->where("Member_ProfileID", $profile->Profile_ID)->where("Member_SpaceID", $space->Space_ID)->first();
+                $profile = User::where('Profile_ID', $memberOfSpace->Member_ProfileID)->first();
+                $role = Member::select(array("Member_Role", "Member_CreatedAt"))->where("Member_ProfileID", $profile->Profile_ID)->where("Member_SpaceID", $space->Space_ID)->first();
                 $membersList[] = array(
                     "Profile_ID" => $profile->Profile_ID,
                     "Profile_DisplayName" => $profile->Profile_DisplayName,
+                    "Profile_RealName" => $profile->Profile_RealName,
                     "Profile_ImageUrl" => $profile->Profile_ImageUrl,
-                    "Member_Role" => $role->Member_Role
+                    "Profile_LastActive" => $profile->Profile_LastActive,
+                    "Profile_CreatedAt" => $profile->Profile_CreatedAt,
+                    "Profile_Country" => $profile->Profile_Country,
+                    "Member_Role" => $role->Member_Role,
+                    "Member_CreatedAt" => $role->Member_CreatedAt,
                 );
             }
         } else {
