@@ -20,10 +20,6 @@ use App\Http\Controllers\MessageController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 /**
  * Users only routes
  */
@@ -34,8 +30,10 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      */
     // Create a new membership of a space
     Route::post('/createMember', [MemberController::class, 'createMember']);
-    // Remove a member from a space
-    Route::post('/removeMember', [MemberController::class, 'removeMember']);
+    // Delete a member from a space
+    Route::post('/deleteMember', [MemberController::class, 'deleteMember']);
+    // Change a membership role
+    Route::post('/updateMembershipRole', [MemberController::class, 'updateMembershipRole']);
 
     /**
      * Space Controller
@@ -47,7 +45,7 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
     // Read highlighted spaces list
     Route::get('/readHighlightedSpacesList', [SpaceController::class, 'readHighlightedSpacesList']);
     // Read member of spaces list
-    Route::get('/readMemberOfSpacesList', [SpaceController::class, 'readMemberOfSpacesList']);
+    Route::post('/readMemberOfSpacesList', [SpaceController::class, 'readMemberOfSpacesList']);
     // Read members of space list
     Route::post('/readMembersOfSpaceList', [SpaceController::class, 'readMembersOfSpaceList']);
     // Update space, save changes
@@ -72,8 +70,8 @@ Route::group(['middleware' => ['api', 'useronly']], function () {
      */
     // Insert new message
     Route::post('/createMessage', [MessageController::class, 'createMessage']);
-    // Get previous 10 messages
-    Route::post('/read10Messages', [MessageController::class, 'read10Messages']);
+    // Get previous 25 messages
+    Route::post('/read25Messages', [MessageController::class, 'read25Messages']);
     // Update existing message
     Route::post('/updateExistingMessage', [MessageController::class, 'updateExistingMessage']);
     // Delete message

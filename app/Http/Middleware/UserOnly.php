@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,7 +38,11 @@ class UserOnly
                 'message' => $e->getMessage()
             ], 500);
         }
-        
+
+        $user = Auth::user();
+        $Profile_LastActive = new DateTime();
+        $Profile_LastActive = $Profile_LastActive->format('Y-m-d H:i:s');
+        $updateActivity = User::where('Profile_ID', $user->Profile_ID)->update(['Profile_LastActive' => $Profile_LastActive]);
         return $next($request);
         /*if (Auth::check()) {
         if (Auth::user()) {

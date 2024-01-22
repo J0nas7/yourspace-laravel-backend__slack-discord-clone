@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -141,13 +142,19 @@ class AuthController extends Controller
 
         // Setting variables
         $Space_Name = $this->request->Space_Name ?? '';
+        $Profile_ID = $this->request->Profile_ID ?? '';
 
         // Check that Space_Name exists
         $space = Space::where("Space_Name", $Space_Name)->first();
         
         // There was no errors, return user data message.
         if (!$selectFailed && Auth::check()) {
-            $user = Auth::user();
+            if ($Profile_ID) {
+                $user = User::where('Profile_ID', $Profile_ID)->first();
+            } else {
+                $user = Auth::user();
+            }
+
             if ($space) {
                 $userRole = Member::where("Member_SpaceID", $space->Space_ID)->where("Member_ProfileID", $user->Profile_ID)->first();
                 $user->Member_Role = $userRole->Member_Role;
@@ -264,6 +271,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'Is NOT logged in',
+            //'hash'    => Hash::make('test123'),
             'data'    => false
         ], 200);
     }

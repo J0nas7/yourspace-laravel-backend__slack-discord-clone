@@ -156,15 +156,28 @@ class SpaceController extends Controller
     {
         $errorMsg = "";
 
+        // Setting variables
+        $Profile_ID = $this->request->Profile_ID ?? '';
+
+        // Grab the specific user or self
+        if ($Profile_ID) {
+            $user = User::where('Profile_ID', $Profile_ID)->first();
+        } else {
+            $user = Auth::user();
+        }
+
         // Grab the spaces list
-        $user = Auth::user();
         $memberOfSpacesList = Member::select("Member_SpaceID")->where("Member_ProfileID", $user->Profile_ID)->get();
         $spacesList = array();
         if ($memberOfSpacesList) {
-            foreach ($memberOfSpacesList as $memberSpace) {
-                $spacesList[] = Space::select(array('Space_ID', 'Space_Name'))
-                    ->where("Space_ID", $memberSpace->Member_SpaceID)
+            foreach ($memberOfSpacesList as $memberOfSpace) {
+                $space = Space::select(array('Space_ID', 'Space_Name'))
+                    ->where("Space_ID", $memberOfSpace->Member_SpaceID)
                     ->first();
+
+                if ($space) {
+                    $spacesList[] = $space;
+                }
             }
         } else {
             $errorMsg = "NotMemberOfSpace";
@@ -201,13 +214,18 @@ class SpaceController extends Controller
         // Grab the members details
         if ($membersOfSpaceList) {
             foreach ($membersOfSpaceList as $memberOfSpace) {
-                $profile = User::select(array('Profile_ID', 'Profile_DisplayName', 'Profile_ImageUrl'))->where('Profile_ID', $memberOfSpace->Member_ProfileID)->first();
-                $role = Member::select("Member_Role")->where("Member_ProfileID", $profile->Profile_ID)->where("Member_SpaceID", $space->Space_ID)->first();
+                $profile = User::where('Profile_ID', $memberOfSpace->Member_ProfileID)->first();
+                $role = Member::select(array("Member_Role", "Member_CreatedAt"))->where("Member_ProfileID", $profile->Profile_ID)->where("Member_SpaceID", $space->Space_ID)->first();
                 $membersList[] = array(
                     "Profile_ID" => $profile->Profile_ID,
                     "Profile_DisplayName" => $profile->Profile_DisplayName,
+                    "Profile_RealName" => $profile->Profile_RealName,
                     "Profile_ImageUrl" => $profile->Profile_ImageUrl,
-                    "Member_Role" => $role->Member_Role
+                    "Profile_LastActive" => $profile->Profile_LastActive,
+                    "Profile_CreatedAt" => $profile->Profile_CreatedAt,
+                    "Profile_Country" => $profile->Profile_Country,
+                    "Member_Role" => $role->Member_Role,
+                    "Member_CreatedAt" => $role->Member_CreatedAt,
                 );
             }
         } else {

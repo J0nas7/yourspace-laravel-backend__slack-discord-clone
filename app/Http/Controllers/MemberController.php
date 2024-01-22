@@ -72,7 +72,7 @@ class MemberController extends Controller
     }
 
     // Change a membership role
-    public function updateMember()
+    public function updateMembershipRole()
     {
         $errorMsg = "";
 
@@ -144,7 +144,7 @@ class MemberController extends Controller
             $errorMsg = "Membership does not exist";
         }
 
-        // Check that the member is deleting itself, or is it a space admin
+        // Check that the member is deleting itself, or it's a space admin
         $adminMember = Member::select("Member_Role")->where("Member_ProfileID", $profile->Profile_ID)->where("Member_SpaceID", $Member_SpaceID)->first();
         if (
             !$errorMsg && 
