@@ -3,7 +3,8 @@
     "type": "commonjs",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "deploy": "gcloud config set project laravel-developerjones-dk && gcloud app deploy app.yaml --version=0-1-0"
     },
     "devDependencies": {
         "axios": "^1.1.2",
