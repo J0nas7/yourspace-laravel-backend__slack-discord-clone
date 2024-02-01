@@ -13,7 +13,9 @@ class ExampleTest extends TestCase
     public function test_the_application_returns_a_successful_response(): void
     {
         $response = $this->get('/');
+        $response2 = $this->get('/api/userLoggedInTest');
 
-        $response->assertStatus(200);
+        $response->assertStatus(404);
+        $response2->assertStatus(200);
     }
 }

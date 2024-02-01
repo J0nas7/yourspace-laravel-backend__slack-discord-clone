@@ -228,7 +228,6 @@ class AuthController extends Controller
         }
 
         $loginFailed = true;
-        $errorMsg = "Login Attempt Failed";
         return response()->json([
             'success' => false,
             'message' => (!empty($errorMsg) ? $errorMsg : 'User Login Failed '),
@@ -242,9 +241,9 @@ class AuthController extends Controller
      *
      * @return response json
      */
-    public function userLogout()
+    public function userLogout(Request $request)
     {
-        Auth::logout();
+        
         return response()->json([
             'success' => true,
             'message' => 'Is logged out',
