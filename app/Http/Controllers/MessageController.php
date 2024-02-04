@@ -7,6 +7,8 @@ use App\Models\Space;
 use App\Models\Channel;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\Conversation;
+use App\Models\DirectMessage;
 use App\Helpers\DataService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,12 +36,13 @@ class MessageController extends Controller
         $Message_Content = $this->request->Message_Content;
         $Channel_Name = $this->request->Channel_Name;
         $Space_Name = $this->request->Space_Name;
+        $Partner_ProfileID = $this->request->Partner_ProfileID;
 
         $createFailed = false;
         $errorMsg = "";
 
         // If credentials are empty
-        if (empty($Message_Content) || empty($Channel_Name) || empty($Space_Name)) {
+        if (empty($Message_Content) && (empty($Channel_Name) || empty($Space_Name)) && empty($Partner_DisplayName)) {
             $createFailed = true;
             $errorMsg = "Missing neccesary credentials.";
         }
@@ -51,15 +54,37 @@ class MessageController extends Controller
         }
 
         // Check that Space_Name and corresponding Channel_Name exists
-        $space = Space::where("Space_Name", $Space_Name)->first();
-        $channel = Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first();
-        if (!$space || !$channel) {
-            $createFailed = true;
-            $errorMsg = "Could not find the channel or space.";
+        $channel = false; $conversation = false;
+        if ($Space_Name && $Channel_Name && !$Partner_ProfileID) {
+            $space = Space::where("Space_Name", $Space_Name)->first();
+            $channel = Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first();
+            if (!$space || !$channel) {
+                $createFailed = true;
+                $errorMsg = "Could not find the channel or space.";
+            }
+        }
+        else
+        // Check that partner conversation exists
+        if (!$Space_Name && !$Channel_Name && $Partner_ProfileID) {
+            $Partner = User::find($Partner_ProfileID);
+            if ($Partner) {
+                $conversation = Conversation::where("Conversation_MemberOne_ID", $Partner->Profile_ID)->where("Conversation_MemberTwo_ID", Auth::user()->Profile_ID)->first();
+                if (!$conversation) {
+                    $conversation = Conversation::firstOrCreate([
+                        "Conversation_MemberOne_ID" => Auth::user()->Profile_ID,
+                        "Conversation_MemberTwo_ID" => $Partner->Profile_ID
+                    ]);
+                }
+            }
+
+            if (!$conversation) {
+                $createFailed = true;
+                $errorMsg = "Could not find the conversation.";
+            }
         }
 
-        // There was no errors, create message
-        if (!$createFailed) {
+        // There was no errors, create message in space context
+        if (!$createFailed && $channel) {
             $newMessage = Message::create([
                 'Message_Content' => $Message_Content,
                 'Message_FileUrl' => '',
@@ -72,13 +97,28 @@ class MessageController extends Controller
             $newMessage->Profile_ImageUrl = $profile->Profile_ImageUrl;
             $newMessage->Channel_Name = $channel->Channel_Name;
         }
+        else
+        // There was no errors, create message in conversation context
+        if (!$createFailed && $conversation) {
+            $newDirectMessage = DirectMessage::create([
+                'DM_Content' => $Message_Content,
+                'DM_FileUrl' => '',
+                'DM_MemberID' => Auth::user()->Profile_ID,
+                'DM_ConversationID' => $conversation->Conversation_ID,
+            ]);
+            $profile = User::where("Profile_ID", $newDirectMessage->DM_MemberID)->first();
+            $conversation = Conversation::where("Conversation_ID", $newDirectMessage->DM_ConversationID)->first();
+            $newDirectMessage->Profile_DisplayName = $profile->Profile_DisplayName;
+            $newDirectMessage->Profile_ImageUrl = $profile->Profile_ImageUrl;
+            $newDirectMessage->Conversation_ID = $conversation->Conversation_ID;
+        }
 
         // Send successfull response
-        if (!$createFailed && $newMessage) {
+        if (!$createFailed && (isset($newMessage) || isset($newDirectMessage))) {
             return response()->json([
                 'success' => true,
                 'message' => 'The message was created',
-                'data'    => $newMessage
+                'data'    => $newMessage ?? $newDirectMessage
             ], 200);
         }
 
@@ -99,30 +139,62 @@ class MessageController extends Controller
         // Setting variables
         $Space_Name = $this->request->Space_Name;
         $Channel_Name = $this->request->Channel_Name;
+        $Partner_ProfileID = $this->request->Partner_ProfileID;
 
         // Check that Space_Name and corresponding Channel_Name exists
-        $space = Space::where("Space_Name", $Space_Name)->first();
-        $channel = ($space ? Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first() : false);
-        if (!$space || !$channel) {
-            $selectFailed = true;
-            $errorMsg = "Could not find the channel or space.";
+        $channel = false; $conversation = false;
+        if ($Space_Name && $Channel_Name && !$Partner_ProfileID) {
+            $space = Space::where("Space_Name", $Space_Name)->first();
+            $channel = ($space ? Channel::where('Channel_Name', $Channel_Name)->where("Channel_SpaceID", $space->Space_ID)->first() : false);
+            if (!$space || !$channel) {
+                $selectFailed = true;
+                $errorMsg = "Could not find the channel or space.";
+            }
+        }
+        else
+        // Check that Conversation exists
+        if (!$Space_Name && !$Channel_Name && $Partner_ProfileID) {
+            $Partner = User::find($Partner_ProfileID);
+            if ($Partner) {
+                $conversation = Conversation::where("Conversation_MemberOne_ID", $Partner->Profile_ID)->where("Conversation_MemberTwo_ID", Auth::user()->Profile_ID)->first();
+                if (!$conversation) {
+                    $conversation = Conversation::firstOrCreate([
+                        "Conversation_MemberOne_ID" => Auth::user()->Profile_ID,
+                        "Conversation_MemberTwo_ID" => $Partner->Profile_ID
+                    ]);
+                }
+            }
+
+            if (!$conversation) {
+                $selectFailed = true;
+                $errorMsg = "Could not find the conversation.";
+            }
         }
 
         // There was no errors, create message.
         if (!$selectFailed) {
-            $Channel_ID = $channel->Channel_ID;
+            if ($channel) {
+                $Channel_ID = $channel->Channel_ID;
+                $theMessages = array();
+                $readMessages = Message::where("Message_ChannelID", $Channel_ID);
+                $sortBy = "Message_ID";
+            } else if ($conversation) {
+                $Conversation_ID = $conversation->Conversation_ID;
+                $theMessages = array();
+                $readMessages = DirectMessage::where("DM_ConversationID", $Conversation_ID);
+                $sortBy = "DM_ID";
+            }
 
-            // DB get last 25 messages
-            /*$messages = Message:://select(array('Message_ID', 'Message_Content', 'Message_CreatedAt', 'Message_FileUrl', 'Profile_DisplayName', 'Profile_ImageUrl'))
-                where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
-                ->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
-                ->orderBy('Message_ID', 'ASC')->latest()->take(10)->get();*/
-            $theMessages = array();
-            $readMessages = Message::where("Message_ChannelID", $Channel_ID)->where('deleted', 0)
-                //->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
-                ->latest()->take(25)->get()->sortBy('Message_ID');
+            //->join('Profile', 'Profile.Profile_ID', '=', 'Message.Message_MemberID')
+            $readMessages = $readMessages->latest()->take(25)->get()->sortBy($sortBy);
+
             foreach ($readMessages as $message) {
-                $profile = User::where("Profile_ID", $message->Message_MemberID)->first();
+                if ($channel) {
+                    $Message_ProfileID = $message->Message_MemberID;
+                } else if ($conversation) {
+                    $Message_ProfileID = $message->DM_MemberID;
+                }
+                $profile = User::where("Profile_ID", $Message_ProfileID)->first();
                 $message->Profile_DisplayName = $profile->Profile_DisplayName;
                 $message->Profile_ImageUrl = $profile->Profile_ImageUrl;
                 $theMessages[] = $message;
